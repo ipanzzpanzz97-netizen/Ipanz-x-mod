@@ -1,0 +1,41 @@
+{
+  "models": [
+    {
+      "file": "ipanz_denoiser_rnnoise.onnx",
+      "name": "ipanz_denoiser_rnnoise",
+      "bytes": 8423033,
+      "sha256": "499779f581173c7617d082d3abf424bd83808a9d6c6695305bbae06d07847583"
+    },
+    {
+      "file": "ipanz_voice_anime_fp16.onnx",
+      "name": "ipanz_voice_anime_fp16",
+      "bytes": 10528377,
+      "sha256": "29dda9f2f17ca9b9454d0e4d7fc2cc740f86316c13731c53b9007d083d8d6b1f"
+    },
+    {
+      "file": "ipanz_voice_woman_fp16.onnx",
+      "name": "ipanz_voice_woman_fp16",
+      "bytes": 10528377,
+      "sha256": "0b0aa568a8e69c26d016c6d678ccd58d537f49e2d1ea2658bb61f318daa27555"
+    },
+    {
+      "file": "ipanz_voice_commander_fp16.onnx",
+      "name": "ipanz_voice_commander_fp16",
+      "bytes": 10528381,
+      "sha256": "a38055836aaa1c9a2ff2630fff6728d04b3c6796c96c55ced84a69a098c2e17a"
+    },
+    {
+      "file": "ipanz_voice_cyborg_fp16.onnx",
+      "name": "ipanz_voice_cyborg_fp16",
+      "bytes": 10528378,
+      "sha256": "122eda6fa01696c60d49199f1723c131cb745360774bc56dd60795c105b40286"
+    },
+    {
+      "file": "ipanz_voice_radio_fp16.onnx",
+      "name": "ipanz_voice_radio_fp16",
+      "bytes": 10528377,
+      "sha256": "c92f616047a03328467cae214b0dae81b64214ed08bee84e2cc267fdc99b76c4"
+    }
+  ],
+  "total_bytes": 61064923
+}

@@ -1,0 +1,6 @@
+{
+  "name": "iPanz Mod",
+  "description": "Suite pengoptimuman perkakasan eksklusif Xiaomi POCO X7 Pro: Hardware Lock, Deep Cleaner UFS 4.0 & RAM LPDDR5X, HyperGame Floating HUD, dan AI Voice Studio luar talian.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

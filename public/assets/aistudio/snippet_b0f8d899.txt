@@ -1,0 +1,79 @@
+BERTINDAK SEBAGAI: Senior Android Systems Engineer, Pakar Audio DSP/On-Device AI, dan Arkitek Pengoptimuman Perkakasan Xiaomi HyperOS.
+
+IDENTITI PROJEK:
+- Nama Aplikasi: iPanz Mod
+- Nama Pakej (Package ID): com.ipanz.mod.x7pro
+- Tema UI: Cyber Gamer Dark Mode (Hitam Pekat #0B0B0E + Kuning Elektrik POCO #FFD400 + Aksen Neon)
+- Peranti Sasaran Eksklusif: HANYA Xiaomi POCO X7 Pro
+- Sasaran Saiz APK Akhir: MESTI berada dalam julat 70 MB hingga 95 MB (70+ MB untuk memuatkan model suara AI berkualiti tinggi secara offline, tetapi WAJIB di bawah had maksimum 100 MB).
+
+ARAHAN DEEPSEARCH WAJIB (LAKUKAN SEBELUM MENULIS KOD):
+Gunakan fungsi DeepSearch / carian dokumentasi teknikal terkini untuk mengesahkan:
+1. Parameter sistem & perkakasan sebenar POCO X7 Pro: codename "rodin" / "rodin_global", nombor model "2412DPC0AG" dan "2412DPC0AI", cip MediaTek Dimensity 8400-Ultra (platform "mt6899", 8-teras arm64-v8a Cortex-A725, GPU Mali-G720 MC7, MediaTek NPU 880), storan UFS 4.0, RAM LPDDR5X, serta Xiaomi HyperOS 2 berasaskan Android 15 (API 35) / Android 16 (API 36).
+2. Aliran kebenaran (permissions) Android 15/16 yang sah supaya tiada crash: MANAGE_EXTERNAL_STORAGE, PACKAGE_USAGE_STATS, SYSTEM_ALERT_WINDOW, WRITE_SETTINGS, ACCESS_NOTIFICATION_POLICY, FOREGROUND_SERVICE_MICROPHONE, dan FOREGROUND_SERVICE_SPECIAL_USE.
+3. Integrasi Google Oboe (AAudio Low-Latency C++), RNNoise (AI Mic Denoiser), dan ONNX Runtime Mobile (dengan pecutan NNAPI / XNNPACK untuk cip MediaTek) bagi pemprosesan AI Voice Changer di dalam peranti.
+
+PERATURAN KERAS (ZERO ERROR & 100% BERFUNGSI TANPA GIMIK):
+1. DILARANG SAMA SEKALI mencipta ciri palsu (dummy buttons), bar kemajuan palsu, bacaan FPS/Ping/Suhu rawak, atau fungsi kosong (stub/TODO). Semua fitur dalam iPanz Mod WAJIB menggunakan API Android/NDK sebenar yang berfungsi 100% pada telefon tanpa root (non-root), dengan sokongan pilihan (optional) Shizuku API jika pengguna mengaktifkannya.
+2. DILARANG memanggil arahan `su` atau menulis ke fail sistem tertutup tanpa kebenaran kerana ia akan menyebabkan ralat SecurityException atau aplikasi tergantung.
+3. WAJIB PAPARKAN KEGUNAAN FITUR: Setiap kad modul dan setiap suis/butang di dalam UI "iPanz Mod" MESTI mempunyai label/ikon maklumat ("Kegunaan Fitur Ini") dalam Bahasa Melayu yang menerangkan fungsi sebenar fitur tersebut kepada pengguna.
+4. Semua kerja berat (imbasan storan, kiraan hash SHA-256, ujian ping, dan pemprosesan audio AI) MESTI berjalan di background thread (Kotlin Coroutines / C++ Real-Time Audio Thread) lengkap dengan pengendalian ralat `try-catch` menyeluruh supaya TIADA Force Close atau ANR.
+
+SENARAI MODUL & KEGUNAAN SETIAP FITUR DALAM "iPanz Mod":
+
+MODUL 1: iPANZ HARDWARE LOCK (KUNCI EKSKLUSIF POCO X7 PRO)
+- Kegunaan Fitur: Mengunci aplikasi iPanz Mod supaya hanya boleh digunakan pada perkakasan asal POCO X7 Pro dan menolak peranti lain secara automatik.
+- Implementasi Sebenar:
+  * Semak pada saat aplikasi dibuka (`SplashScreen` / `Application.onCreate`): `Build.DEVICE` ("rodin" atau mengandungi "rodin"), `Build.PRODUCT` ("rodin_global" / "rodin"), `Build.MODEL` ("2412DPC0AG" / "2412DPC0AI"), dan platform cip `ro.board.platform` ("mt6899").
+  * Jika peranti BUKAN POCO X7 Pro, paparkan dialog keselamatan bertema iPanz Mod: "Peranti Tidak Disokong: iPanz Mod hanya dikunci khas untuk POCO X7 Pro" dan tutup aplikasi dengan kemas (`finishAffinity()`).
+  * Jika sah, paparkan "iPanz System Dashboard" dengan bacaan masa nyata sebenar: Suhu Bateri/Peranti (°C), Penggunaan RAM LPDDR5X (MB/GB digunakan vs bebas), Ruang Storan UFS 4.0, dan Kesihatan/Voltan Bateri daripada `BatteryManager`.
+
+MODUL 2: iPANZ DEEP CLEANER (PEMBERSIH STORAN UFS 4.0 & RAM LPDDR5X)
+- Fitur 2A: Pembersih Sampah Mendalam (Deep Junk & Residual Cleaner)
+  * Kegunaan Fitur: Mengimbas dan membuang fail sampah sebenar seperti baki fail pemasang `.apk`, fail log/sementara (`.tmp`, `.log`), folder kosong, dan sisa cache media aplikasi sosial supaya kelajuan baca/tulis storan UFS 4.0 kekal maksimum.
+  * Implementasi Sebenar: Gunakan `MANAGE_EXTERNAL_STORAGE` + Kotlin Coroutines `FileTreeWalk` dengan penapis keselamatan ketat supaya gambar, video peribadi, dan dokumen pengguna TIDAK disentuh. Paparkan senarai fail dan jumlah MB/GB sebenar sebelum dipadam.
+- Fitur 2B: Pengesan Fail Pendua & Fail Besar (SHA-256 Duplicate & Heavy File Scanner)
+  * Kegunaan Fitur: Mencari fail kembar/pendua yang memakan ruang berganda serta menyenaraikan fail bersaiz besar (>100 MB) untuk semakan pantas.
+  * Implementasi Sebenar: Tapis mengikut saiz fail yang sama dahulu, kemudian sahkan menggunakan kiraan cincangan `SHA-256` secara penstriman (buffered stream) supaya pantas dan tidak memakan RAM.
+- Fitur 2C: Pembebas RAM LPDDR5X & Pintasan Cache Aplikasi (Smart RAM & App Cache Booster)
+  * Kegunaan Fitur: Mematikan proses latar belakang yang membazirkan RAM dan kuota CPU sebelum bermain game, serta membantu membuang cache aplikasi berat.
+  * Implementasi Sebenar: Baca memori sebenar melalui `ActivityManager.getMemoryInfo()`, hentikan proses latar aplikasi bukan kritikal menggunakan `ActivityManager.killBackgroundProcesses()` berdasarkan data `UsageStatsManager`, dan sediakan pembersih cache berpandu melalui `StorageStatsManager` + pilihan automasi `AccessibilityService` / Shizuku (jika diaktifkan pengguna).
+
+MODUL 3: iPANZ HYPERGAME ENGINE & FLOATING HUD (MOD PEMACU GAME)
+- Fitur 3A: Pengoptimum Pra-Game Satu Sentuhan (iPanz Game Boost Mode)
+  * Kegunaan Fitur: Mengoptimumkan keadaan telefon sebelum masuk ke dalam game dengan membersihkan proses latar, mengaktifkan mod Jangan Ganggu (Auto-DND), dan mengunci tahap kecerahan skrin AMOLED supaya skrin tidak malap sendiri ketika tangan menutup sensor cahaya.
+  * Implementasi Sebenar: Gunakan API rasmi Android `GameManager`, kawal `NotificationManager` untuk sekat gangguan notifikasi, dan kunci mod kecerahan skrin melalui `Settings.System.SCREEN_BRIGHTNESS_MODE` (`SCREEN_BRIGHTNESS_MODE_MANUAL`). Sediakan senarai pelancar pantas (Game Launcher) untuk game yang dikesan dalam telefon.
+- Fitur 3B: Panel Terapung iPanz HUD (Real-Time In-Game Floating Overlay)
+  * Kegunaan Fitur: Memaparkan meter prestasi sebenar (FPS, Suhu, Ping) dan butang kawalan pantas secara terapung di atas skrin semasa bermain game.
+  * Implementasi Sebenar: Bina `ForegroundService` dengan `WindowManager` (`TYPE_APPLICATION_OVERLAY`) yang boleh dialihkan, dikecilkan menjadi ikon kecil "iPanz", dan tidak mengganggu sentuhan game:
+    1. Meter FPS Sebenar: Dikira secara langsung menggunakan `Choreographer.FrameCallback`.
+    2. Meter Suhu Sebenar: Bacaan masa nyata daripada `BatteryManager` & `PowerManager.OnThermalStatusChangedListener` dengan penunjuk warna (Hijau < 39°C, Kuning 39-42°C, Merah > 42°C).
+    3. Meter Ping Sebenar (ms): Ujian kependaman soket TCP masa nyata ke pelayan 1.1.1.1 / 8.8.8.8 dengan paparan ms tepat.
+
+MODUL 4: iPANZ AI VOICE STUDIO (PENUKAR SUARA AI HD + AI MIC DENOISER)
+- Kegunaan Fitur: Menukar suara pengguna kepada pelbagai karakter menggunakan model AI Neural luar talian (offline) dan membuang bunyi bising latar belakang (kipas/angin) secara pintar.
+- Implementasi Sebenar & Saiz Model 70+ MB (< 100 MB Total APK):
+  * Enjin Audio C++ (JNI): Gabungkan Google `Oboe` (`AAudio` Low-Latency) + `RNNoise` (AI Noise Suppression) + `ONNX Runtime Mobile` (`arm64-v8a` dengan pecutan perkakasan NNAPI/XNNPACK pada cip Dimensity 8400-Ultra).
+  * Gunakan bajet ruang ~40 MB - 50 MB di dalam folder `assets/models/` untuk memuatkan pek model penukaran ciri vokal AI berkualiti tinggi (`FP16`/`INT8` quantized neural voice models + formant-preserving vocoder) supaya jumlah keseluruhan APK berada tepat sekitar 75 MB - 92 MB (di atas 70 MB dan di bawah 100 MB).
+  * Sediakan 6 Karakter Suara Berfungsi Penuh: (1) Gadis Anime / Suara Halus HD, (2) Suara Wanita Dewasa Natural, (3) Komander / Lelaki Garau Dalam, (4) Cyborg Taktikal, (5) Radio Skuad E-Sukan, dan (6) Pro Mic Enhancer (AI Buang Bising Kipas + Suara Jernih). Lengkapkan dengan pelaras Pitch, Formant, Timbre AI, dan tahap Denoise.
+  * Penyelesaian Kekangan Mikrofon Android 15 (Dijamin 100% Berfungsi Tanpa Root):
+    1. Panel "iPanz Quick Voice-Deck" dalam HUD Game: Butang terapung tekan-rakam (1–12 saat) -> tukar suara guna AI serta-merta -> mainkan terus ke pembesar suara/saluran audio semasa voice chat atau hantar terus sebagai nota suara ke WhatsApp/Discord/Telegram.
+    2. Mod "Live Earphone / Splitter Loopback": Pemantauan dan penukaran suara AI secara langsung dengan kependaman ultra-rendah ke output fon telinga/kabel audio splitter, lengkap dengan perlindungan pintar Anti-Feedback/Echo jika tiada fon telinga dikesan.
+
+KONFIGURASI BINAAN GRADLE & JAMINAN SAIZ (70 MB - 95 MB):
+1. Dalam `app/build.gradle.kts`:
+   - Hadkan ABI kepada `ndk { abiFilters += listOf("arm64-v8a") }` sahaja (optimum sepenuhnya untuk POCO X7 Pro 64-bit dan mengelakkan APK melebihi 100 MB).
+   - Tetapkan `packaging { jniLibs { useLegacyPackaging = false } }` dan konfigurasi `aaptOptions { noCompress += listOf("onnx", "ort", "bin") }` supaya fail model suara AI dimuatkan terus ke memori (`mmap`) dengan pantas tanpa ralat kehabisan RAM (`OutOfMemoryError`), sambil mengekalkan saiz APK terkompilasi dalam sasaran 75 MB - 95 MB.
+   - Sediakan `proguard-rules.pro` lengkap untuk ONNX Runtime, kelas JNI C++, dan Jetpack Compose supaya binaan Release berjalan lancar tanpa sebarang crash.
+
+OUTPUT LENGKAP YANG PERLU DIJANA SEKARANG:
+1. Struktur penuh direktori projek `iPanz Mod` dan anggaran saiz setiap modul bagi mengesahkan jumlah APK berada antara 75 MB - 95 MB (< 100 MB).
+2. Fail konfigurasi penuh: `settings.gradle.kts`, `build.gradle.kts` (Root & App), `CMakeLists.txt`, `proguard-rules.pro`, dan `AndroidManifest.xml` (lengkap dengan semua kebenaran Android 15/16).
+3. Kod sumber penuh Kotlin tanpa sebarang bahagian yang dipotong/diringkaskan:
+   - `IPanzHardwareGatekeeper.kt` (Kunci POCO X7 Pro `rodin` / `2412DPC0AG` / `2412DPC0AI`).
+   - `DeepCleanerRepository.kt` & `RamBoosterManager.kt` (Pembersih sebenar + SHA-256 duplicate finder).
+   - `HyperGameService.kt` & `FloatingHudCompose.kt` (Game Mode + Overlay FPS/Suhu/Ping + Quick Voice-Deck).
+   - `AiVoiceStudioEngine.kt` (Pengawal model ONNX & pengurusan fail model AI dalam `assets/models/`).
+   - Semua skrin UI Jetpack Compose bertema Hitam-Kuning **iPanz Mod** lengkap dengan teks "Kegunaan Fitur" pada setiap kad.
+4. Kod sumber penuh C++ (`ipanz_audio_engine.cpp`) menggunakan Oboe, penapis bunyi bising, pemprosesan formant/pitch, dan jambatan JNI ke ONNX Runtime.
+5. Fail workflow `.github/workflows/build-ipanz-apk.yml` (GitHub Actions) dan arahan terminal Android Studio supaya projek ini boleh terus dikompilasi menjadi fail `iPanz_Mod_X7Pro.apk` tanpa ralat.

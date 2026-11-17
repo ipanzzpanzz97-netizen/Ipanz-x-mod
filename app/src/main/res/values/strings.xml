@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iPanz Mod</string>
+    <string name="app_subtitle">POCO X7 PRO HARDWARE SUITE</string>
+    <string name="kegunaan_fitur_label">Kegunaan Fitur Ini</string>
+    <string name="notification_channel_hud_name">iPanz HyperGame HUD</string>
+    <string name="notification_channel_hud_desc">Memaparkan meter prestasi FPS, suhu, ping dan Voice-Deck secara masa nyata semasa bermain game.</string>
+    <string name="notification_channel_voice_name">iPanz AI Voice Studio</string>
+    <string name="notification_channel_voice_desc">Pemprosesan mikrofon kependaman rendah Oboe + AI Denoiser + ONNX Runtime.</string>
+    <string name="unsupported_device_title">Peranti Tidak Disokong</string>
+    <string name="unsupported_device_message">iPanz Mod hanya dikunci khas untuk POCO X7 Pro (rodin / 2412DPC0AG / 2412DPC0AI / mt6899).</string>
+</resources>
