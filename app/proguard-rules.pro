@@ -19,6 +19,8 @@
 # Shizuku API & Binder IPC
 -keep class rikka.shizuku.** { *; }
 -keep class moe.shizuku.** { *; }
+-keep class com.ipanz.mod.x7pro.shizuku.** { *; }
+-keep class com.ipanz.mod.x7pro.aidl.** { *; }
 -dontwarn rikka.shizuku.**
 -dontwarn moe.shizuku.**
 

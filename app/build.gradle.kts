@@ -19,9 +19,14 @@ val enableNativeCxxBuild: Boolean =
   hasLocalNdkAndCmake ||
     project.findProperty("forceNativeBuild")?.toString()?.toBoolean() == true
 
+val ortNativeDir = layout.buildDirectory.dir("generated/onnxruntime-native")
+
 android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
+  if (enableNativeCxxBuild) {
+    ndkVersion = "27.2.12479018"
+  }
 
   defaultConfig {
     applicationId = "com.ipanz.mod.x7pro"
@@ -40,7 +45,10 @@ android {
       externalNativeBuild {
         cmake {
           cppFlags += listOf("-std=c++17", "-O3", "-fexceptions", "-frtti")
-          arguments += listOf("-DANDROID_STL=c++_shared")
+          arguments += listOf(
+            "-DANDROID_STL=c++_shared",
+            "-DORT_NATIVE_DIR=${ortNativeDir.get().asFile.absolutePath.replace("\\", "/")}"
+          )
         }
       }
     }
@@ -125,6 +133,24 @@ android {
   }
 }
 
+val extractOnnxRuntimeNative by tasks.registering(Sync::class) {
+  group = "ipanz"
+  description = "Mengekstrak header dan libonnxruntime.so daripada AAR onnxruntime-android untuk CMake"
+  val ortAarFiles =
+    configurations.named("releaseRuntimeClasspath").map { cfg ->
+      cfg.incoming
+        .artifactView {
+          componentFilter { id -> id.displayName.contains("onnxruntime-android") }
+        }
+        .files
+    }
+  from(ortAarFiles.map { files -> files.map { zipTree(it) } }) {
+    include("headers/**")
+    include("jni/arm64-v8a/libonnxruntime.so")
+  }
+  into(ortNativeDir)
+}
+
 val prepareAiModels by tasks.registering(Exec::class) {
   group = "ipanz"
   description = "Menyediakan pek model suara AI ONNX (~49 MB FP16/INT8) ke dalam assets/models/"
@@ -139,6 +165,17 @@ val prepareAiModels by tasks.registering(Exec::class) {
 
 tasks.named("preBuild").configure {
   dependsOn(prepareAiModels)
+  dependsOn(extractOnnxRuntimeNative)
+}
+
+tasks.configureEach {
+  if (
+    name.startsWith("configureCMake") ||
+      name.startsWith("buildCMake") ||
+      name.startsWith("externalNativeBuild")
+  ) {
+    dependsOn(extractOnnxRuntimeNative)
+  }
 }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.example files

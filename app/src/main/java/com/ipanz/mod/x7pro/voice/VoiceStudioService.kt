@@ -97,9 +97,7 @@ class VoiceStudioService : Service() {
         }
 
         fun stop(context: Context) {
-            context.startService(
-                Intent(context, VoiceStudioService::class.java).apply { action = ACTION_STOP }
-            )
+            context.stopService(Intent(context, VoiceStudioService::class.java))
         }
     }
 }

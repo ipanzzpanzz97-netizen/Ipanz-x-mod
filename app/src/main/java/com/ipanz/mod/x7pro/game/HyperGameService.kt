@@ -402,9 +402,7 @@ class HyperGameService : Service() {
         }
 
         fun stop(context: Context) {
-            context.startService(
-                Intent(context, HyperGameService::class.java).apply { action = ACTION_STOP }
-            )
+            context.stopService(Intent(context, HyperGameService::class.java))
         }
     }
 }

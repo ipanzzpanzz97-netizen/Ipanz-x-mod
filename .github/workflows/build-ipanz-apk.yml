@@ -28,15 +28,45 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 36 Platform, NDK & CMake 3.22.1
+      - name: Configure Android 36.1 SDK, NDK r27c & CMake 3.22.1
+        shell: bash
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ ! -d "$SDK_ROOT" ]; then
+            echo "ERROR: Android SDK root tidak ditemui pada $SDK_ROOT"
+            exit 1
+          fi
 
-      - name: Prepare AI Voice ONNX Model Pack (~49 MB)
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -maxdepth 3 -name sdkmanager -type f 2>/dev/null | sort -V | tail -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager tidak ditemui di bawah $SDK_ROOT/cmdline-tools"
+            exit 1
+          fi
+
+          echo "Using SDK_ROOT=$SDK_ROOT"
+          echo "Using SDKMANAGER=$SDKMANAGER"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "$SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+
+          # Elakkan SIGPIPE exit 141 apabila 'yes' disambungkan ke sdkmanager dengan pipefail aktif
+          set +o pipefail
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null
+          set -o pipefail
+
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "platforms;android-36.1" \
+            "build-tools;36.0.0" \
+            "ndk;27.2.12479018" \
+            "cmake;3.22.1"
+
+      - name: Prepare AI Voice ONNX Model Pack (~58 MB FP16)
         run: |
           python3 scripts/prepare_ai_models.py --output-dir app/src/main/assets/models
           ls -lh app/src/main/assets/models
@@ -79,9 +109,13 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Run Unit Tests & Compile Release + Debug APKs (Native C++ arm64-v8a)
+      - name: Run Unit Tests
         run: |
-          gradle :app:testDebugUnitTest --tests "com.ipanz.mod.x7pro.*" --tests "com.example.ExampleUnitTest" :app:assembleDebug :app:assembleRelease -PforceNativeBuild=true --no-daemon --stacktrace
+          gradle :app:testDebugUnitTest --tests "com.ipanz.mod.x7pro.*" --tests "com.example.ExampleUnitTest" --no-daemon --stacktrace
+
+      - name: Compile Debug & Release APKs (Native C++ arm64-v8a)
+        run: |
+          gradle :app:assembleDebug :app:assembleRelease -PforceNativeBuild=true --no-daemon --stacktrace
 
       - name: Package & Verify iPanz_Mod_X7Pro.apk Size (70 MB - 95 MB)
         run: |
@@ -96,6 +130,7 @@ jobs:
 
           # Verify native arm64-v8a libraries & ONNX models exist inside Release APK
           unzip -l dist/iPanz_Mod_X7Pro.apk | grep -q "lib/arm64-v8a/libipanz_audio.so"
+          unzip -l dist/iPanz_Mod_X7Pro.apk | grep -q "lib/arm64-v8a/liboboe.so"
           unzip -l dist/iPanz_Mod_X7Pro.apk | grep -q "lib/arm64-v8a/libonnxruntime.so"
           unzip -l dist/iPanz_Mod_X7Pro.apk | grep -q "assets/models/ipanz_voice_anime_fp16.onnx"
 
